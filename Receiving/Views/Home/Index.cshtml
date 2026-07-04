@@ -1,0 +1,59 @@
+﻿@{
+    ViewData["Title"] = "Receive Messages";
+}
+
+<div class="text-center">
+    <h1>Message Receiver</h1>
+
+    <div style="margin: 20px 0;">
+        <button id="receiveBtn1" class="btn btn-primary" style="margin-right: 10px;">Receive Queue 1 Messages</button>
+        <button id="receiveBtn2" class="btn btn-success">Receive Queue 2 Messages</button>
+    </div>
+
+    <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+        <!-- Queue 1 receive results -->
+        <div id="result1" style="width: 45%; border: 1px solid #ccc; padding: 10px; min-height: 150px;">
+            <h3>Messages received from Queue 1:</h3>
+            <p id="messageText1"><strong>No new messages</strong></p>
+        </div>
+
+        <!-- Queue 2 receive results -->
+        <div id="result2" style="width: 45%; border: 1px solid #ccc; padding: 10px; min-height: 150px;">
+            <h3>Messages received from Queue 2:</h3>
+            <p id="messageText2"><strong>No new messages</strong></p>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Receive messages from Queue 1
+        $('#receiveBtn1').click(function() {
+            $.ajax({
+                url: '@Url.Action("ReceiveMessageFromQueue1", "Home")',
+                type: 'POST',
+                success: function(data) {
+                    $('#messageText1').html('<strong>' + data.message + '</strong>');
+                },
+                error: function() {
+                    alert('Failed to receive messages from Queue 1');
+                }
+            });
+        });
+
+        // Receive messages from Queue 2
+        $('#receiveBtn2').click(function() {
+            $.ajax({
+                url: '@Url.Action("ReceiveMessageFromQueue2", "Home")',
+                type: 'POST',
+                success: function(data) {
+                    $('#messageText2').html('<strong>' + data.message + '</strong>');
+                },
+                error: function() {
+                    alert('Failed to receive messages from Queue 2');
+                }
+            });
+        });
+    });
+</script>

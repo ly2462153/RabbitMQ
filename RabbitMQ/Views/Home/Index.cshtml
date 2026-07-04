@@ -1,0 +1,96 @@
+﻿@model List<string>
+@{
+    ViewData["Title"] = "Send Messages";
+}
+
+<div class="text-center">
+    <h1>Message Sender</h1>
+
+    <div style="margin: 20px 0;">
+        <button id="sendBtn1" class="btn btn-primary" style="margin-right: 10px;">Send Messages to Queue 1</button>
+        <button id="sendBtn2" class="btn btn-success">Send Messages to Queue 2</button>
+    </div>
+
+    <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+        <!-- Queue 1 message list -->
+        <div id="messageList1" style="width: 45%; border: 1px solid #ccc; padding: 10px; min-height: 200px;">
+            <h3>Queue 1 Messages:</h3>
+            <!-- Messages will be added here dynamically -->
+        </div>
+
+        <!-- Queue 2 message list -->
+        <div id="messageList2" style="width: 45%; border: 1px solid #ccc; padding: 10px; min-height: 200px;">
+            <h3>Queue 2 Messages:</h3>
+            <!-- Messages will be added here dynamically -->
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // SignalR connection
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/messageHub")
+        .build();
+
+    connection.on("MessageConsumed", function(message) {
+        // Handle Queue 1 messages
+        const paragraphs1 = document.querySelectorAll('#messageList1 p');
+        paragraphs1.forEach(p => {
+            if (p.dataset.message === message && p.innerText.includes('pending')) {
+                p.innerText = p.innerText.replace('Queue pending', 'Message consumed');
+            }
+        });
+
+        // Handle Queue 2 messages
+        const paragraphs2 = document.querySelectorAll('#messageList2 p');
+        paragraphs2.forEach(p => {
+            if (p.dataset.message === message && p.innerText.includes('pending')) {
+                p.innerText = p.innerText.replace('Queue pending', 'Message consumed');
+            }
+        });
+    });
+
+    connection.start().then(function() {
+        connection.invoke("JoinGroup");
+    });
+
+    // Send messages to Queue 1 button click handler
+    $('#sendBtn1').click(function() {
+        $.ajax({
+            url: '@Url.Action("SendMessagesToQueue1", "Home")',
+            type: 'POST',
+            success: function(data) {
+                // Clear and re-render Queue 1 message list
+                $('#messageList1').empty();
+                $('#messageList1').append('<h3>Queue 1 Messages:</h3>');
+                data.forEach(function(msg) {
+                    $('#messageList1').append('<p data-message="' + msg.split('-')[0].trim() + '">' + msg + '</p>');
+                });
+            },
+            error: function() {
+                alert('Failed to send messages to Queue 1');
+            }
+        });
+    });
+
+    // Send messages to Queue 2 button click handler
+    $('#sendBtn2').click(function() {
+        $.ajax({
+            url: '@Url.Action("SendMessagesToQueue2", "Home")',
+            type: 'POST',
+            success: function(data) {
+                // Clear and re-render Queue 2 message list
+                $('#messageList2').empty();
+                $('#messageList2').append('<h3>Queue 2 Messages:</h3>');
+                data.forEach(function(msg) {
+                    $('#messageList2').append('<p data-message="' + msg.split('-')[0].trim() + '">' + msg + '</p>');
+                });
+            },
+            error: function() {
+                alert('Failed to send messages to Queue 2');
+            }
+        });
+    });
+</script>
